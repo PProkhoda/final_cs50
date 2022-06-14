@@ -11,15 +11,15 @@ async def command_start(message : types.Message):
     except:
         await message.reply('Общение с ботом в ЛС, напишите ему:\nhttps://t.me/RunEventCS50x2022_bot')
         
-# @dp.message_handler(commands=['add runner'])
+# @dp.message_handler(commands=['add_runner'])
 async def add_runner_command(message : types.Message):
     await bot.send_message(message.from_user.id, 'we are add runner')
     
-# @dp.message_handler(commands=['delete runner'])
+# @dp.message_handler(commands=['delete_runner'])
 async def delete_runner_command(message : types.Message):
     await bot.send_message(message.from_user.id, 'we are delete runner')
     
-# @dp.message_handler(commands=['events list'])
+# @dp.message_handler(commands=['events_list'])
 # async def event_list_comand(message : types.message):
 #     for ret in cur.execute('SELECT * FROM menu').fetchall():
 #         await bot.send_photo(message.from_user.id, ret[0], f'{ret[1]}\nОписание: {ret[2]}\nЦена {ret[-1]}')
@@ -28,6 +28,6 @@ async def delete_runner_command(message : types.Message):
         
 def register_handlers_client(dp : Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'help'])
-    dp.register_message_handler(add_runner_command, commands=['add runner'])
-    dp.register_message_handler(delete_runner_command, commands=['delete runner'])
-    # dp.register_message_handler(event_list_command, commands=['events list'])
+    dp.register_message_handler(add_runner_command, commands=['add_runner'])
+    dp.register_message_handler(delete_runner_command, commands=['delete_runner'])
+    # dp.register_message_handler(event_list_command, commands=['events_list'])

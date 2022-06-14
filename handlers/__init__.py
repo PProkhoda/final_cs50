@@ -1,2 +1,7 @@
 from handlers import client
-from handlers import admin
+from handlers.admin import cm_start
+
+
+__all__ = (
+    'cm_start',
+)
