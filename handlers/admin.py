@@ -1,18 +1,20 @@
 from email import message
 from weakref import proxy
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
+# from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import  types, Dispatcher
 from create_bot import dp, bot
 
+from dto.dto import FS
 
-class FSMAdmin(StatesGroup):
-    photo_run = State()
-    name_run = State()
-    date_run = State()
-    distance_run = State()
-    time_run = State()
-    name_creator = State()
+
+# class FSMAdmin(StatesGroup):
+#     photo_run = State()
+#     name_run = State()
+#     date_run = State()
+#     distance_run = State()
+#     time_run = State()
+#     name_creator = State()
     
     
 @dp.message_handler(commands='create_event', state=None)
