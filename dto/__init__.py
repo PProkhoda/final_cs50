@@ -1,1 +1,6 @@
-from dto import FSMAdmin
+from dto import dto
+
+
+__all__ = (
+    'FSMAdmin',
+)
