@@ -8,3 +8,7 @@ class FSMAdmin(StatesGroup):
     distance_run = State()
     time_run = State()
     name_creator = State()
+    
+class FSMadd(StatesGroup):
+    event_id = State()
+    run_notes = State()
