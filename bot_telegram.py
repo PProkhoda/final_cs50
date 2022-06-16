@@ -1,10 +1,12 @@
 from aiogram.utils import executor
-from create_bot import dp
 
+from create_bot import dp
+from logic import logic
 
 
 async def on_startup(_):
     print('bot online')
+    logic.sql_start()
     
 from handlers import client, admin
 

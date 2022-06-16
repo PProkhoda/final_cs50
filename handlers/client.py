@@ -1,9 +1,11 @@
 from aiogram import  types, Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text 
 
 from create_bot import dp, bot
 from keyboards import kb_client
 from dto.dto import FSMadd
+from logic import logic
 
 
 
@@ -20,11 +22,22 @@ async def add_runner_command(message : types.Message):
     # await bot.send_message(message.from_user.id, 'we are add runner')
     await FSMadd.event_id.set()
     await message.reply('Enter event_id from Event list')
+    
+    
+# @dp.message_handler(state="*", commands='cancel')
+# @dp.message_handler(Text(equals='cancel', ignore_case=True), state="*")
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    await message.reply('OK')
+    
 
 # @dp.message_handler(state=FSMadd.event_id)
 async def load_event_id(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['event_id'] = message.text  
+        data['id'] = message.text  
         data['name_runner'] = message.from_user.username
         
     await FSMadd.next()
@@ -38,7 +51,7 @@ async def load_notes(message : types.Message, state: FSMContext):
         data['notes'] = message.text
 
     async with state.proxy() as data:
-        await message.reply(str(data))
+        await logic.add_runner_command(state)
     
     await state.finish()
     
@@ -56,7 +69,9 @@ async def delete_runner_command(message : types.Message):
 def register_handlers_client(dp : Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'help'])
     dp.register_message_handler(add_runner_command, commands=['add_runner'], state=None)
-    dp.register_message_handler(delete_runner_command, commands=['delete_runner'])
-    # dp.register_message_handler(event_list_command, commands=['events_list'])
+    dp.register_message_handler(cancel_handler, state="*", commands='cancel')
+    dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state="*")
     dp.register_message_handler(load_event_id, state=FSMadd.event_id)
     dp.register_message_handler(load_notes, state=FSMadd.run_notes)
+    dp.register_message_handler(delete_runner_command, commands=['delete_runner'])
+    # dp.register_message_handler(event_list_command, commands=['events_list'])
