@@ -39,15 +39,32 @@ async def list_events(message):
         await bot.send_photo(
             message.from_user.id,
             x[0],
-            f"{x[1]}\nDate of Event: {x[2]}\nDistance of run: {x[3]}\n'Time of run: {x[4]}\nName of creator: {x[5]}\n Event ID: {x[6]}",
+            f"{x[1]}\n'
+            f'Date of Event: {x[2]}\n'
+            f'Distance of run: {x[3]}\n'f
+            f'Time of run: {x[4]}\n'f
+            f'Name of creator: {x[5]}\n'
+            f'Event ID: {x[6]}",
         )
 
 
-async def list_runners(state):
-    async with state.proxy() as data1:
-        # await message.reply(str(data1))
-        for y in cur.execute(
-            'SELECT peoples_list.name_runner, peoples_list.notes FROM peoples_list INNER JOIN events_list ON peoples_list.id=events_list.event_id WHERE event_id= "?"',
-            data1["id"],
-        ).fetchall():
-            await bot.send_message(y)
+async def list_runners(data):
+    return cur.execute(
+        ('SELECT' 
+            'peoples_list.name_runner,'
+            'peoples_list.notes '
+         'FROM peoples_list '
+         'INNER JOIN events_list'
+         ' ON peoples_list.id=events_list.event_id '
+         'WHERE event_id == ?'), (data,)).fetchall()
+
+
+async def list_events2():
+    return cur.execute("SELECT * FROM events_list").fetchall()
+
+
+async def sql_delete_command(data):
+    cur.execute('DELETE '
+                'FROM events_list WHERE event_id == ?', (data,))
+    db.commit()
+    
