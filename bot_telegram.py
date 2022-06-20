@@ -1,7 +1,7 @@
 from aiogram.utils import executor
 from base.init import dp
 from logic import logic
-# import handlers
+import handlers
 
 
 async def on_startup(_):
@@ -11,6 +11,3 @@ async def on_startup(_):
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
-
-
-# create read update delete

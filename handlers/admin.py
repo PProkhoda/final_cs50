@@ -1,5 +1,3 @@
-# from email import message
-# from typing import Text
 from aiogram.dispatcher import FSMContext
 from aiogram import types
 from aiogram.dispatcher.filters import Text
@@ -83,7 +81,7 @@ async def load_time(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
         await logic.add_event_command(state)
-
+    await message.reply("Event added")
     await state.finish()
 
     # await FSMAdmin.next()

@@ -77,3 +77,14 @@ async def sql_delete_command(data):
     cur.execute('DELETE '
                 'FROM events_list WHERE event_id == ?', (data,))
     db.commit()
+
+
+async def list_runners2(data):
+    cur.execute('SELECT * FROM peoples_list WHERE id == ?', tuple(data.values()))
+
+
+async def del_runner_command(data):
+    # async with state.proxy() as data:
+    cur.execute('DELETE FROM peoples_list WHERE id == ?', (data,))
+    db.commit()
+
