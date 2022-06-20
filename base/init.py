@@ -4,7 +4,6 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from base import config
-# import config
 
 storage = MemoryStorage()
 

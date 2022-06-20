@@ -17,9 +17,8 @@ class FSMadd(StatesGroup):
 
 class FSMrunners(StatesGroup):
     peoples_id = State()
-    
-    
+
+
 class FSMdel(StatesGroup):
     ev_id = State()
-    # validate_runner = State()
     del_runner = State()

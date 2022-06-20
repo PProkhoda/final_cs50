@@ -9,7 +9,6 @@ def sql_start():
     cur = db.cursor()
     if db:
         print("Data base conected")
-    # db.execute("CREATE TABLE IF NOT EXISTS events_list (photo TEXT, name_run TEXT, date_run TEXT, distance_run TEXT, time_run TEXT, name_creator TEXT, event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)")
     db.execute(
         "CREATE TABLE IF NOT EXISTS events_list ("
         "photo TEXT, name_run TEXT, date_run TEXT, "
@@ -17,7 +16,6 @@ def sql_start():
         "name_creator TEXT, "
         "event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)"
         )
-    # db.execute("CREATE TABLE IF NOT EXISTS peoples_list (id TEXT, name_runner TEXT NOT NULL, notes TEXT, FOREIGN KEY(id) REFERENCES events_list(event_id))")
     db.execute(
         "CREATE TABLE IF NOT EXISTS peoples_list (id TEXT, "
         "name_runner TEXT NOT NULL, "

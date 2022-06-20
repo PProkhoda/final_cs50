@@ -133,44 +133,14 @@ async def load_id(message: types.Message, state: FSMContext):
         runners = await logic.list_runners(data['id'])
         username = message.from_user.username
         for runner in runners:
-            # await bot.send_message(message.from_user.id, runner[0])
-            # await bot.send_message(message.from_user.id, username)
             if str(runner[0]) == username:
-                # await FSMdel.next()
                 await message.reply(
                     "You in list. Do you want to delete yourself?   (y|n)")
                 return await FSMdel.next()
 
         await bot.send_message(message.from_user.id,
-                                "You can only delete yourself")
+                               "You can only delete yourself")
         await state.finish()
-    # await FSMdel.next()
-    # await bot.send_message(message.from_user.id,
-                        #    'if you in list we will delete you?   (y/n)')
-
-
-# @dp.message_handler(state=FSMdel.validate_runner)
-# async def validate_runner(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         # print(data)
-#         runners = await logic.list_runners(data['id'])
-#         username = message.from_user.username
-#         for runner in runners:
-#             # await bot.send_message(message.from_user.id, runner[0])
-#             # await bot.send_message(message.from_user.id, username)
-#             if str(runner[0]) == username:
-#                 # await FSMdel.next()
-#                 await message.reply(
-#                     "You in list. Do you want to delete yourself?   (y|n)")
-#                 return await FSMdel.next()
-
-#         await bot.send_message(message.from_user.id,
-#                                 "You can only delete yourself")
-#         await state.finish()
-            # await FSMdel.next()
-            # await message.reply("You in list")
-
-    # await message.reply('if you in list we will delete you')
 
 
 @dp.message_handler(state=FSMdel.del_runner)
