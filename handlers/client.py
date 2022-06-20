@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from base.init import bot, dp
 from keyboards import kb_client
-from dto.dto import FSMadd, FSMrunners, FSMdel
+from dto.dto import FSMadd, FSMdel
 from logic import logic
 
 
@@ -57,7 +57,7 @@ async def load_notes(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
         await logic.add_runner_command(state)
-    await message.reply("Runner added") 
+    await message.reply("Runner added")
     await state.finish()
 
 
@@ -92,8 +92,7 @@ async def callback_runner_list(cq: types.CallbackQuery):
         await bot.send_message(
             user_id, str("\n".join(
                 [f"Name of runner: {r[0]}, Note: {r[1]}"
-                for r
-                in runners])))
+                    for r in runners])))
 
 
 @dp.message_handler(commands='runners_list')
@@ -120,14 +119,6 @@ async def def_callback_run1(message: types.Message):
                     callback_data=f'show {event[id]} {message.from_user.id}')))
 
 
-
-
-
-
-
-
-    
-
 @dp.message_handler(commands=['delete_runner'])
 async def add_del_runner_command(message: types.Message):
     # await bot.send_message(message.from_user.id, 'we are add runner')
@@ -140,7 +131,8 @@ async def load_id(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["id"] = message.text
     await FSMdel.next()
-    await bot.send_message(message.from_user.id, 'if you in list we will delete you?   (y/n)')
+    await bot.send_message(message.from_user.id,
+                           'if you in list we will delete you?   (y/n)')
 
 
 @dp.message_handler(state=FSMdel.validate_runner)
@@ -150,26 +142,30 @@ async def validate_runner(message: types.Message, state: FSMContext):
         runners = await logic.list_runners(data['id'])
         username = message.from_user.username
         for runner in runners:
-            await bot.send_message(message.from_user.id, runner[0])
-            await bot.send_message(message.from_user.id, username)
-            if str(runner[0]) != username:
-                await bot.send_message(message.from_user.id, "You can only delete yourself")
-                await state.finish()
-                            
+            # await bot.send_message(message.from_user.id, runner[0])
+            # await bot.send_message(message.from_user.id, username)
+            if str(runner[0]) == username:
+                # await FSMdel.next()
+                await message.reply(
+                    "You in list. Do you want to delete yourself?   (y|n)")
+                return await FSMdel.next()
+
+        await bot.send_message(message.from_user.id,
+                                "You can only delete yourself")
+        await state.finish()
             # await FSMdel.next()
             # await message.reply("You in list")
 
-
     # await message.reply('if you in list we will delete you')
-        await FSMdel.next()
-        await message.reply("You in list")
 
-  
+
 @dp.message_handler(state=FSMdel.del_runner)
 async def delete_runner(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        await bot.send_message(message.from_user.id, data['id'])
-        await logic.del_runner_command(data['id'])
-    
+        username = message.from_user.username
+        # await bot.send_message(message.from_user.id, data['id'])
+        del_data = (data['id'], username)
+        await logic.del_runner_command(del_data)
+
     await bot.send_message(message.from_user.id, "Runner Deleted")
     await state.finish()

@@ -5,17 +5,19 @@ from base.init import bot
 
 def sql_start():
     global db, cur
-    db = sq.connect("event.db")
+    db = sq.connect('event.db')
     cur = db.cursor()
     if db:
         print("Data base conected")
+    # db.execute("CREATE TABLE IF NOT EXISTS events_list (photo TEXT, name_run TEXT, date_run TEXT, distance_run TEXT, time_run TEXT, name_creator TEXT, event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)")
     db.execute(
         "CREATE TABLE IF NOT EXISTS events_list ("
         "photo TEXT, name_run TEXT, date_run TEXT, "
         "distance_run TEXT, time_run TEXT, "
         "name_creator TEXT, "
         "event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)"
-    )
+        )
+    # db.execute("CREATE TABLE IF NOT EXISTS peoples_list (id TEXT, name_runner TEXT NOT NULL, notes TEXT, FOREIGN KEY(id) REFERENCES events_list(event_id))")
     db.execute(
         "CREATE TABLE IF NOT EXISTS peoples_list (id TEXT, "
         "name_runner TEXT NOT NULL, "
@@ -80,11 +82,13 @@ async def sql_delete_command(data):
 
 
 async def list_runners2(data):
-    cur.execute('SELECT * FROM peoples_list WHERE id == ?', tuple(data.values()))
+    cur.execute(
+        'SELECT * FROM peoples_list WHERE id == ?', tuple(data.values()))
 
 
 async def del_runner_command(data):
     # async with state.proxy() as data:
-    cur.execute('DELETE FROM peoples_list WHERE id == ?', (data,))
+    cur.execute(
+        'DELETE FROM peoples_list WHERE id == ? AND name_runner == ?',
+        tuple(data))
     db.commit()
-

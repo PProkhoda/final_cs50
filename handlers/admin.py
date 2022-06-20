@@ -41,7 +41,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["photo"] = message.photo[0].file_id
-       
+
     await FSMAdmin.next()
     await message.reply("enter event name")
 
