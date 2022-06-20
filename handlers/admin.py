@@ -8,16 +8,18 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from base.init import bot, dp
 from dto.dto import FSMAdmin
 from logic import logic
-
+from keyboards import kb_admin
 
 
 ID = None
 
+
 @dp.message_handler(commands='moderator', is_chat_admin=True)
-async def make_changes_command(message : types.Message):
+async def make_changes_command(message: types.Message):
     global ID
     ID = message.from_user.id
-    await bot.send_message(message.from_user.id, 'What happend?')
+    await bot.send_message(
+        message.from_user.id, 'What happend?', reply_markup=kb_admin)
     await message.delete()
 
 
@@ -41,7 +43,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["photo"] = message.photo[0].file_id
-        
+       
     await FSMAdmin.next()
     await message.reply("enter event name")
 
@@ -103,7 +105,9 @@ async def load_time(message: types.Message, state: FSMContext):
 async def del_callback_run(callback_query: types.CallbackQuery):
     await logic.sql_delete_command(callback_query.data.replace('del ', ''))
     await callback_query.answer(
-        text=f'{callback_query.data.replace("del ", "")} deleted', show_alert=True)
+        text=f'{callback_query.data.replace("del ", "")} deleted',
+        show_alert=True)
+
 
 @dp.message_handler(commands='delete')
 async def def_callback_run(message: types.Message):
@@ -113,7 +117,11 @@ async def def_callback_run(message: types.Message):
             await bot.send_photo(
                 message.from_user.id,
                 x[0],
-                f"{x[1]}\nDate of Event: {x[2]}\nDistance of run: {x[3]}\n'Time of run: {x[4]}\nName of creator: {x[5]}\n Event ID: {x[6]}",
-            ) 
-            await bot.send_message(message.from_user.id, text='!!!!!!!!', reply_markup=InlineKeyboardMarkup().\
-                add(InlineKeyboardButton(f'Delete {x[6]}', callback_data=f'del {x[6]}')))
+                f"{x[1]}\nDate of Event: {x[2]}\nDistance "
+                "of run: {x[3]}\n'Time of run: {x[4]}\n"
+                "Name of creator: {x[5]}\n Event ID: {x[6]}",
+            )
+            await bot.send_message(
+                message.from_user.id, text='!!!!!!!!',
+                reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(f'Delete {x[6]}',
+                callback_data=f'del {x[6]}')))

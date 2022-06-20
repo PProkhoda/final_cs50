@@ -10,6 +10,6 @@ b4 = KeyboardButton("/create_event")
 b5 = KeyboardButton("/runners_list")
 b6 = KeyboardButton('/delete_event')
 
-kb_client = ReplyKeyboardMarkup(resize_keyboard=True)
+kb_admin = ReplyKeyboardMarkup(resize_keyboard=True)
 
-kb_client.add(b4).insert(b6).add(b1).insert(b5).add(b2).insert(b3)
+kb_admin.add(b4).insert(b6).add(b1).insert(b5).add(b2).insert(b3)

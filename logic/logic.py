@@ -1,5 +1,6 @@
 import sqlite3 as sq
-from create_bot import bot
+from base.init import bot
+# from base.init import bot
 
 
 def sql_start():
@@ -9,10 +10,17 @@ def sql_start():
     if db:
         print("Data base conected")
     db.execute(
-        "CREATE TABLE IF NOT EXISTS events_list (photo TEXT, name_run TEXT, date_run TEXT, distance_run TEXT, time_run TEXT, name_creator TEXT, event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)"
+        "CREATE TABLE IF NOT EXISTS events_list ("
+        "photo TEXT, name_run TEXT, date_run TEXT, "
+        "distance_run TEXT, time_run TEXT, "
+        "name_creator TEXT, "
+        "event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)"
     )
     db.execute(
-        "CREATE TABLE IF NOT EXISTS peoples_list (id TEXT, name_runner TEXT NOT NULL, notes TEXT, FOREIGN KEY(id) REFERENCES events_list(event_id))"
+        "CREATE TABLE IF NOT EXISTS peoples_list (id TEXT, "
+        "name_runner TEXT NOT NULL, "
+        "notes TEXT, "
+        "FOREIGN KEY(id) REFERENCES events_list(event_id))"
     )
     db.commit()
 
@@ -30,7 +38,8 @@ async def add_event_command(state):
 
 async def add_runner_command(state):
     async with state.proxy() as data:
-        cur.execute("INSERT INTO peoples_list VALUES(?, ?, ?)", tuple(data.values()))
+        cur.execute(
+            "INSERT INTO peoples_list VALUES(?, ?, ?)", tuple(data.values()))
         db.commit()
 
 
@@ -39,24 +48,25 @@ async def list_events(message):
         await bot.send_photo(
             message.from_user.id,
             x[0],
-            f"{x[1]}\n'
+            f'{x[1]}\n'
             f'Date of Event: {x[2]}\n'
-            f'Distance of run: {x[3]}\n'f
-            f'Time of run: {x[4]}\n'f
+            f'Distance of run: {x[3]}\n'
+            f'Time of run: {x[4]}\n'
             f'Name of creator: {x[5]}\n'
-            f'Event ID: {x[6]}",
+            f'Event ID: {x[6]}',
         )
 
 
 async def list_runners(data):
     return cur.execute(
-        ('SELECT' 
+        (
+            'SELECT '
             'peoples_list.name_runner,'
             'peoples_list.notes '
-         'FROM peoples_list '
-         'INNER JOIN events_list'
-         ' ON peoples_list.id=events_list.event_id '
-         'WHERE event_id == ?'), (data,)).fetchall()
+            'FROM peoples_list '
+            'INNER JOIN events_list'
+            ' ON peoples_list.id=events_list.event_id '
+            'WHERE event_id == ?'), (data,)).fetchall()
 
 
 async def list_events2():
@@ -67,4 +77,3 @@ async def sql_delete_command(data):
     cur.execute('DELETE '
                 'FROM events_list WHERE event_id == ?', (data,))
     db.commit()
-    

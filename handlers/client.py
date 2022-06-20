@@ -1,4 +1,3 @@
-from asyncio import runners
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
@@ -6,21 +5,23 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from base.init import bot, dp
 from keyboards import kb_client
-from dto.dto import FSMadd, FSMrunners, FSMAdmin
+from dto.dto import FSMadd, FSMrunners
 from logic import logic
 
 # read1 = ()
+
 
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.Message):
     try:
         await bot.send_message(
-            message.from_user.id, "Welcome to RunEvent bot", reply_markup=kb_client
-        )
+            message.from_user.id, "Welcome to RunEvent bot",
+            reply_markup=kb_client)
         await message.delete()
     except:
         await message.reply(
-            "Общение с ботом в ЛС, напишите ему:\nhttps://t.me/RunEventCS50x2022_bot"
+            "Общение с ботом в ЛС, "
+            "напишите ему:\nhttps://t.me/RunEventCS50x2022_bot"
         )
 
 
@@ -68,7 +69,7 @@ async def delete_runner_command(message: types.Message):
 
 
 @dp.message_handler(commands=['events_list'])
-async def event_list_command(message : types.message):
+async def event_list_command(message: types.message):
     await logic.list_events(message)
 
 
@@ -82,6 +83,7 @@ async def load_peoples_id(message: types.Message, state: FSMContext):
 
     await state.finish()
 
+
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('show '))
 async def callback_runner_list(cq: types.CallbackQuery):
     _, event_id, user_id = cq.data.split()
@@ -91,7 +93,7 @@ async def callback_runner_list(cq: types.CallbackQuery):
             [f"Name of runner: {r[0]}, Note: {r[1]}"
              for r
              in runners])))
-           
+
 
 @dp.message_handler(commands='runners_list')
 async def def_callback_run1(message: types.Message):
@@ -110,10 +112,8 @@ async def def_callback_run1(message: types.Message):
 
         await bot.send_message(
             message.from_user.id,
-            text='!!!!!!!', 
+            text='!!!!!!!',
             reply_markup=InlineKeyboardMarkup().add(
                 InlineKeyboardButton(
                     f'Show list of runners for Event ID = {event[id]}',
                     callback_data=f'show {event[id]} {message.from_user.id}')))
-
-    
