@@ -12,6 +12,7 @@ from keyboards import kb_admin
 ID = None
 
 
+# hiden moderator handler, moderator = telegram administrator
 @dp.message_handler(commands='moderator', is_chat_admin=True)
 async def make_changes_command(message: types.Message):
     global ID
@@ -21,12 +22,14 @@ async def make_changes_command(message: types.Message):
     await message.delete()
 
 
+# create event handler part1
 @dp.message_handler(commands='create_event', state=None)
 async def cm_start(message: types.Message):
     await FSMAdmin.photo.set()
     await message.reply("Load label of run")
 
 
+# cancel handler
 @dp.message_handler(state="*", commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state="*")
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -37,6 +40,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await message.reply("OK")
 
 
+# add event part2
 @dp.message_handler(content_types=['photo'], state=FSMAdmin.photo)
 async def load_photo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -46,6 +50,7 @@ async def load_photo(message: types.Message, state: FSMContext):
     await message.reply("enter event name")
 
 
+# add event part3
 @dp.message_handler(state=FSMAdmin.name_run)
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -55,6 +60,7 @@ async def load_name(message: types.Message, state: FSMContext):
     await message.reply("enter event date")
 
 
+# add event part 4
 @dp.message_handler(state=FSMAdmin.date_run)
 async def load_date(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -64,6 +70,7 @@ async def load_date(message: types.Message, state: FSMContext):
     await message.reply("enter distance of event")
 
 
+# add event handler part 5
 @dp.message_handler(state=FSMAdmin.distance_run)
 async def load_distance(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -73,6 +80,7 @@ async def load_distance(message: types.Message, state: FSMContext):
     await message.reply("enter race duration")
 
 
+# add event handler part6 finish
 @dp.message_handler(state=FSMAdmin.time_run)
 async def load_time(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -84,21 +92,8 @@ async def load_time(message: types.Message, state: FSMContext):
     await message.reply("Event added")
     await state.finish()
 
-    # await FSMAdmin.next()
-    # await message.reply('enter creator name')
 
-
-# @dp.message_handler(state=FSMAdmin.name_creator)
-# async def load_creator(message : types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['name_creator'] = message.from_user.username
-
-#     async with state.proxy() as data:
-#         await message.reply(str(data))
-
-#     await state.finish()
-
-
+# delete event hadler part2 finish
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
 async def del_callback_run(callback_query: types.CallbackQuery):
     await logic.sql_delete_command(callback_query.data.replace('del ', ''))
@@ -107,6 +102,7 @@ async def del_callback_run(callback_query: types.CallbackQuery):
         show_alert=True)
 
 
+# delete event handler part1 (only for moderator)
 @dp.message_handler(commands='delete')
 async def def_callback_run(message: types.Message):
     if message.from_user.id == ID:

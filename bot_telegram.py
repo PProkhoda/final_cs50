@@ -4,6 +4,7 @@ from logic import logic
 import handlers
 
 
+# start function
 async def on_startup(_):
     print("bot online")
     logic.sql_start()

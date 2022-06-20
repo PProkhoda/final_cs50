@@ -3,6 +3,7 @@ from base.init import bot
 # from base.init import bot
 
 
+# create ore connect to DB
 def sql_start():
     global db, cur
     db = sq.connect('event.db')
@@ -25,6 +26,7 @@ def sql_start():
     db.commit()
 
 
+# add event to DB
 async def add_event_command(state):
     async with state.proxy() as data:
         cur.execute(
@@ -36,6 +38,7 @@ async def add_event_command(state):
         db.commit()
 
 
+# add runner to DB
 async def add_runner_command(state):
     async with state.proxy() as data:
         cur.execute(
@@ -43,6 +46,7 @@ async def add_runner_command(state):
         db.commit()
 
 
+# view list of all events from DB
 async def list_events(message):
     for x in cur.execute("SELECT * FROM events_list").fetchall():
         await bot.send_photo(
@@ -57,6 +61,7 @@ async def list_events(message):
         )
 
 
+# select list of runners from DB
 async def list_runners(data):
     return cur.execute(
         (
@@ -69,21 +74,25 @@ async def list_runners(data):
             'WHERE event_id == ?'), (data,)).fetchall()
 
 
+# tuple evets from db
 async def list_events2():
     return cur.execute("SELECT * FROM events_list").fetchall()
 
 
+# delete event in DB
 async def sql_delete_command(data):
     cur.execute('DELETE '
                 'FROM events_list WHERE event_id == ?', (data,))
     db.commit()
 
 
+# select all rows from peoples_list
 async def list_runners2(data):
     cur.execute(
         'SELECT * FROM peoples_list WHERE id == ?', tuple(data.values()))
 
 
+# delete runner from DB via event_id
 async def del_runner_command(data):
     # async with state.proxy() as data:
     cur.execute(

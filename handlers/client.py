@@ -9,6 +9,7 @@ from dto.dto import FSMadd, FSMdel
 from logic import logic
 
 
+# start/help handler
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.Message):
     try:
@@ -18,18 +19,19 @@ async def command_start(message: types.Message):
         await message.delete()
     except:
         await message.reply(
-            "Общение с ботом в ЛС, "
-            "напишите ему:\nhttps://t.me/RunEventCS50x2022_bot"
+            "Communication with the bot in "
+            "the PM, write to him:\nhttps://t.me/RunEventCS50x2022_bot"
         )
 
 
+# add runner handler part1
 @dp.message_handler(commands=['add_runner'])
 async def add_runner_command(message: types.Message):
-    # await bot.send_message(message.from_user.id, 'we are add runner')
     await FSMadd.event_id.set()
     await message.reply("Enter event_id from Event list")
 
 
+# add cancel handler
 @dp.message_handler(state="*", commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state="*")
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -40,6 +42,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await message.reply("OK")
 
 
+# add runner handler part2
 @dp.message_handler(state=FSMadd.event_id)
 async def load_event_id(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -50,6 +53,7 @@ async def load_event_id(message: types.Message, state: FSMContext):
     await message.reply("enter notes")
 
 
+# add runner Handler part3 (finish)
 @dp.message_handler(state=FSMadd.run_notes)
 async def load_notes(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -61,27 +65,13 @@ async def load_notes(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-# @dp.message_handler(commands=['delete_runner'])
-# async def delete_runner_command(message: types.Message):
-#     await bot.send_message(message.from_user.id, "we are delete runner")
-
-
+# list of all events handler
 @dp.message_handler(commands=['events_list'])
 async def event_list_command(message: types.message):
     await logic.list_events(message)
 
 
-# @dp.message_handler(state=FSMrunners.peoples_id)
-# async def load_peoples_id(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data1:
-#         data1["id"] = message.text
-
-#     async with state.proxy() as data1:
-#         await logic.list_runners(state)
-
-#     await state.finish()
-
-
+# list of runners handler part2 finish (inline button)
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('show '))
 async def callback_runner_list(cq: types.CallbackQuery):
     _, event_id, user_id = cq.data.split()
@@ -95,6 +85,7 @@ async def callback_runner_list(cq: types.CallbackQuery):
                     for r in runners])))
 
 
+# list of ruuners handler part1 (inline button)
 @dp.message_handler(commands='runners_list')
 async def def_callback_run1(message: types.Message):
      events = await logic.list_events2()
@@ -119,13 +110,14 @@ async def def_callback_run1(message: types.Message):
                     callback_data=f'show {event[id]} {message.from_user.id}')))
 
 
+# delete runner handler part1
 @dp.message_handler(commands=['delete_runner'])
 async def add_del_runner_command(message: types.Message):
-    # await bot.send_message(message.from_user.id, 'we are add runner')
     await FSMdel.ev_id.set()
     await message.reply("Enter event_id from Event list")
 
 
+# delete runner handler part2
 @dp.message_handler(state=FSMdel.ev_id)
 async def load_id(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -143,6 +135,7 @@ async def load_id(message: types.Message, state: FSMContext):
         await state.finish()
 
 
+# delete runner handler part3 finish
 @dp.message_handler(state=FSMdel.del_runner)
 async def delete_runner(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
