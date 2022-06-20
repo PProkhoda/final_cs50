@@ -21,5 +21,5 @@ class FSMrunners(StatesGroup):
     
 class FSMdel(StatesGroup):
     ev_id = State()
-    validate_runner = State()
+    # validate_runner = State()
     del_runner = State()

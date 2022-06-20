@@ -130,15 +130,6 @@ async def add_del_runner_command(message: types.Message):
 async def load_id(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["id"] = message.text
-    await FSMdel.next()
-    await bot.send_message(message.from_user.id,
-                           'if you in list we will delete you?   (y/n)')
-
-
-@dp.message_handler(state=FSMdel.validate_runner)
-async def validate_runner(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        # print(data)
         runners = await logic.list_runners(data['id'])
         username = message.from_user.username
         for runner in runners:
@@ -153,6 +144,29 @@ async def validate_runner(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id,
                                 "You can only delete yourself")
         await state.finish()
+    # await FSMdel.next()
+    # await bot.send_message(message.from_user.id,
+                        #    'if you in list we will delete you?   (y/n)')
+
+
+# @dp.message_handler(state=FSMdel.validate_runner)
+# async def validate_runner(message: types.Message, state: FSMContext):
+#     async with state.proxy() as data:
+#         # print(data)
+#         runners = await logic.list_runners(data['id'])
+#         username = message.from_user.username
+#         for runner in runners:
+#             # await bot.send_message(message.from_user.id, runner[0])
+#             # await bot.send_message(message.from_user.id, username)
+#             if str(runner[0]) == username:
+#                 # await FSMdel.next()
+#                 await message.reply(
+#                     "You in list. Do you want to delete yourself?   (y|n)")
+#                 return await FSMdel.next()
+
+#         await bot.send_message(message.from_user.id,
+#                                 "You can only delete yourself")
+#         await state.finish()
             # await FSMdel.next()
             # await message.reply("You in list")
 
@@ -162,10 +176,14 @@ async def validate_runner(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMdel.del_runner)
 async def delete_runner(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
+        data['key'] = message.text
         username = message.from_user.username
         # await bot.send_message(message.from_user.id, data['id'])
-        del_data = (data['id'], username)
-        await logic.del_runner_command(del_data)
-
-    await bot.send_message(message.from_user.id, "Runner Deleted")
-    await state.finish()
+        if str(data['key']) == str('y'):
+            del_data = (data['id'], username)
+            await logic.del_runner_command(del_data)
+            await bot.send_message(message.from_user.id, "Runner Deleted")
+            await state.finish()
+        else:
+            await bot.send_message(message.from_user.id, "Delete canceled")
+            await state.finish()
