@@ -38,12 +38,19 @@ async def add_event_command(state):
         db.commit()
 
 
+# # add runner to DB
+# async def add_runner_command(state):
+#     async with state.proxy() as data:
+#         cur.execute(
+#             "INSERT INTO peoples_list VALUES(?, ?, ?)", tuple(data.values()))
+#         db.commit()
+
+
 # add runner to DB
 async def add_runner_command(state):
-    async with state.proxy() as data:
-        cur.execute(
-            "INSERT INTO peoples_list VALUES(?, ?, ?)", tuple(data.values()))
-        db.commit()
+    cur.execute(
+        "INSERT INTO peoples_list VALUES(?, ?, ?)", tuple(state))
+    db.commit()
 
 
 # view list of all events from DB

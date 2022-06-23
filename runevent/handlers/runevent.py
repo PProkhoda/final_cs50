@@ -1,3 +1,4 @@
+# from email.message import Message
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
@@ -5,7 +6,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from runevent.base.init import bot, dp
 from runevent.helpers.keyboard import kb_client, kb_admin
-from runevent.dto.runevent import FSMadd, FSMdel, FSMAdmin
+from runevent.dto.runevent import FSMadd, FSMAdmin
 from runevent.logic import runevent
 
 
@@ -37,13 +38,6 @@ async def command_start(message: types.Message):
         )
 
 
-# add runner handler part1
-@dp.message_handler(commands=['add_runner'])
-async def add_runner_command(message: types.Message):
-    await FSMadd.event_id.set()
-    await message.reply("Enter event_id from Event list")
-
-
 # add cancel handler
 @dp.message_handler(state="*", commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state="*")
@@ -53,29 +47,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         return
     await state.finish()
     await message.reply("OK")
-
-
-# add runner handler part2
-@dp.message_handler(state=FSMadd.event_id)
-async def load_event_id(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["id"] = message.text
-        data["name_runner"] = message.from_user.username
-
-    await FSMadd.next()
-    await message.reply("enter notes")
-
-
-# add runner Handler part3 (finish)
-@dp.message_handler(state=FSMadd.run_notes)
-async def load_notes(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["notes"] = message.text
-
-    async with state.proxy() as data:
-        await runevent.add_runner_command(state)
-    await message.reply("Runner added")
-    await state.finish()
 
 
 # list of all events handler
@@ -94,7 +65,7 @@ async def callback_runner_list(cq: types.CallbackQuery):
     else:
         await bot.send_message(
             user_id, str("\n".join(
-                [f"Name of runner: {r[0]}, Note: {r[1]}"
+                [f"Name of runner: {r[0]}   Note: {r[1]}"
                     for r in runners])))
 
 
@@ -121,48 +92,6 @@ async def def_callback_run1(message: types.Message):
                 InlineKeyboardButton(
                     f'Show list of runners for Event ID = {event[id]}',
                     callback_data=f'show {event[id]} {message.from_user.id}')))
-
-
-# delete runner handler part1
-@dp.message_handler(commands=['delete_runner'])
-async def add_del_runner_command(message: types.Message):
-    await FSMdel.ev_id.set()
-    await message.reply("Enter event_id from Event list")
-
-
-# delete runner handler part2
-@dp.message_handler(state=FSMdel.ev_id)
-async def load_id(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["id"] = message.text
-        runners = await runevent.list_runners(data['id'])
-        username = message.from_user.username
-        for runner in runners:
-            if str(runner[0]) == username:
-                await message.reply(
-                    "You in list. Do you want to delete yourself?   (y|n)")
-                return await FSMdel.next()
-
-        await bot.send_message(message.from_user.id,
-                               "You can only delete yourself")
-        await state.finish()
-
-
-# delete runner handler part3 finish
-@dp.message_handler(state=FSMdel.del_runner)
-async def delete_runner(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['key'] = message.text
-        username = message.from_user.username
-        # await bot.send_message(message.from_user.id, data['id'])
-        if str(data['key']) == str('y'):
-            del_data = (data['id'], username)
-            await runevent.del_runner_command(del_data)
-            await bot.send_message(message.from_user.id, "Runner Deleted")
-            await state.finish()
-        else:
-            await bot.send_message(message.from_user.id, "Delete canceled")
-            await state.finish()
 
 
 # create event handler part1
@@ -225,7 +154,7 @@ async def load_time(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-# delete event hadler part2 finish
+# delete event hadler part2 finish (only for moderator)
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
 async def del_callback_run(callback_query: types.CallbackQuery):
     await runevent.sql_delete_command(callback_query.data.replace('del ', ''))
@@ -251,3 +180,95 @@ async def def_callback_run(message: types.Message):
                 message.from_user.id, text='!!!!!!!!',
                 reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(f'Delete {x[6]}',
                 callback_data=f'del {x[6]}')))
+
+
+# Delete runner handler part2 finish (inline button)
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('delete '))
+async def callback_delete_runner(cq: types.CallbackQuery):
+    _, event_id, user_id, username = cq.data.split()
+    runners = await runevent.list_runners(event_id)
+    if len(runners) < 1:
+        await bot.send_message(user_id, "list of runners is empty")
+    else:
+        for runner in runners:
+            if str(runner[0]) == username:
+                del_data = (event_id, username)
+                await runevent.del_runner_command(del_data)
+                await bot.send_message(user_id, "Runner Deleted")
+                return
+
+        await bot.send_message(user_id, "You can only delete yourself")
+
+
+# Delete ruuner handler part1 (inline button)
+@dp.message_handler(commands='delete_runner')
+async def def_callback_delete_runner(message: types.Message):
+    # echo_callback = 'delete'
+    # text_callback = 'Delete runners for Event ID = '
+    events = await runevent.list_events2()
+    photo, name, date, distance, time, creator, id = 0, 1, 2, 3, 4, 5, 6
+    for event in events:
+        await bot.send_photo(
+            message.from_user.id,
+            event[photo],
+            (f"{event[name]}\n"
+             f"Date of Event: {event[date]}\n"
+             f"Distance of run: {event[distance]}\n"
+             f"Time of run: {event[time]}\n"
+             f"Name of creator: {event[creator]}\n"
+             f"Event ID: {event[id]}"))
+
+        await bot.send_message(
+            message.from_user.id,
+            text='!!!!!!!',
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    f'Delete runners for Event ID = {event[id]}',
+                    callback_data=f'delete {event[id]} {message.from_user.id} {message.from_user.username}')))
+
+
+
+# Add runner handler part2 finish (inline button)
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
+async def callback_add_runner(cq: types.CallbackQuery):
+    _, event_id, user_id, username, notes = cq.data.split()
+    runner = (event_id, username, notes)
+    await runevent.add_runner_command(runner)
+    await bot.send_message(user_id, "Runner added")
+
+
+# add of ruuners handler part1 (FSM + inline button)
+@dp.message_handler(commands='add_runner', state=None)
+async def add_runner(message: types.Message):
+    await FSMadd.run_notes.set()
+    await message.reply("enter notes")
+
+
+# add of ruuners handler part2 finish (FSM + inline button)
+@dp.message_handler(state=FSMadd.run_notes)
+async def def_callback_add_runner(message: types.Message, state: FSMContext):
+    # echo_callback = 'delete'
+    # text_callback = 'Delete runners for Event ID = '
+    notes = message.text
+    events = await runevent.list_events2()
+    photo, name, date, distance, time, creator, id = 0, 1, 2, 3, 4, 5, 6
+    for event in events:
+        await bot.send_photo(
+            message.from_user.id,
+            event[photo],
+            (f"{event[name]}\n"
+             f"Date of Event: {event[date]}\n"
+             f"Distance of run: {event[distance]}\n"
+             f"Time of run: {event[time]}\n"
+             f"Name of creator: {event[creator]}\n"
+             f"Event ID: {event[id]}"))
+
+        await bot.send_message(
+            message.from_user.id,
+            text='!!!!!!!',
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    f'Write notes and push for ""Add runner where Event ID = {event[id]}',
+                    callback_data=f'add {event[id]} {message.from_user.id} {message.from_user.username} {notes}')))
+
+    await state.finish()
