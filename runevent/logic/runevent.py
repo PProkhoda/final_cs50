@@ -1,5 +1,5 @@
 import sqlite3 as sq
-from base.init import bot
+from runevent.base.init import bot
 # from base.init import bot
 
 
@@ -49,16 +49,20 @@ async def add_runner_command(state):
 # view list of all events from DB
 async def list_events(message):
     for x in cur.execute("SELECT * FROM events_list").fetchall():
-        await bot.send_photo(
-            message.from_user.id,
-            x[0],
-            f'{x[1]}\n'
-            f'Date of Event: {x[2]}\n'
-            f'Distance of run: {x[3]}\n'
-            f'Time of run: {x[4]}\n'
-            f'Name of creator: {x[5]}\n'
-            f'Event ID: {x[6]}',
-        )
+        if len(x) < 1:
+            await bot.send_message(message.from_user.id, "list of "
+                                   "runners is empty")
+        else:
+            await bot.send_photo(
+                message.from_user.id,
+                x[0],
+                f'{x[1]}\n'
+                f'Date of Event: {x[2]}\n'
+                f'Distance of run: {x[3]}\n'
+                f'Time of run: {x[4]}\n'
+                f'Name of creator: {x[5]}\n'
+                f'Event ID: {x[6]}',
+            )
 
 
 # select list of runners from DB

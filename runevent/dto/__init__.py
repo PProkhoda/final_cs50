@@ -1,4 +1,4 @@
-from dto import dto
+from runevent.dto import runevent
 
 
 __all__ = (

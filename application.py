@@ -1,13 +1,13 @@
 from aiogram.utils import executor
-from base.init import dp
-from logic import logic
-import handlers
+from runevent.base.init import dp
+from runevent.logic import runevent
+import runevent.handlers
 
 
 # start function
 async def on_startup(_):
     print("bot online")
-    logic.sql_start()
+    runevent.sql_start()
 
 
 if __name__ == '__main__':

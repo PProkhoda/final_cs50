@@ -3,7 +3,7 @@ from aiogram.dispatcher import Dispatcher
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
-from base import config
+from runevent.base import config
 
 # add storage type
 storage = MemoryStorage()
