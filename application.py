@@ -1,14 +1,23 @@
 from aiogram.utils import executor
 from runevent.base.init import dp
 from runevent.logic.runevent import sql_start
-import runevent.handlers
+from runevent.handlers import runevent as handlers
 
 
-# start function
-async def on_startup(_):
-    print("bot online")
-    sql_start()
+def main():
+    """
+    Initialize bot instance, storage and
+    dispatcher and run the bot by starting
+    poll for updates. Create SQL tables
+    on startup.
+    """
+    # start function
+    async def on_startup(_):
+        print("bot online")
+        sql_start()
 
-
-if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+
+
+if __name__ == "__main__":
+    main()
