@@ -1,6 +1,7 @@
 import sqlite3 as sq
 from datetime import datetime
 from runevent.base.init import bot
+import time
 
 
 # from base.init import bot
@@ -39,13 +40,21 @@ def validate(date_text):
         return False
 
 
+# validate input time
+def validate_time(time_text):
+    try:
+        return bool(time.strptime(time_text, '%H:%M'))
+    except ValueError:
+        return False
+
+
 # add event to DB
 async def add_event_command(state):
     async with state.proxy() as data:
         cur.execute("""
             INSERT INTO events_list(
-            photo, name_run, date_run, distance_run,
-             time_run, name_creator, chat_id)
+            chat_id, name_run, date_run, time_start, distance_run,
+             time_run, name_creator)
              VALUES (?, ?, ?, ?, ?, ?, ?)
             """, tuple(data.values()))
         db.commit()

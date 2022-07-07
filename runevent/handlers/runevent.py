@@ -3,8 +3,10 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.types import CallbackQuery
 from datetime import datetime
+import aiogram.utils.markdown as md
+from time import time
 
-from runevent.base.init import bot, dp
+from runevent.base.init import bot, dp, storage
 from runevent.helpers.keyboard import keys, keysadmin
 from runevent.dto.runevent import CreateEventFSM, AddRunnerFSM
 from runevent.logic import runevent as logic
@@ -151,52 +153,65 @@ async def def_callback_run1(message: Message):
         await message.delete()
 
 
-# create event handler part1
-@dp.message_handler(commands="create_event")
-async def cm_start(message: Message):
-    # await CreateEventFSM.photo.set()
-    # await message.reply("Load label of run")
-    # breakpoint()
+# # create event handler part1
+# @dp.message_handler(commands="create_event")
+# async def cm_start(message: Message):
+#     # await CreateEventFSM.photo.set()
+#     # await message.reply("Load label of run")
 
-    chat_id = message.chat.id
-    # async with state.proxy() as data:
-    #     data["chat_id"] = chat_id
-    # await bot.send_message(
-    #     message.from_user.id, "Load label of run")
-    # await message.delete()
-    # await CreateEventFSM.next()
-    await bot.send_message(
-            message.from_user.id,
-            text=f"Do you want to create event for chat ID = {chat_id}",
-            reply_markup=InlineKeyboardMarkup().add(
-                InlineKeyboardButton(
-                    "Load label of run",
-                    callback_data=f"create {chat_id}",
-                )
-            ),
-        )
-    await message.delete()
+#     chat_id = message.chat.id
+    
+#     await bot.send_message(
+#             message.from_user.id,
+#             text=f"Do you want to create event for chat ID = {chat_id}",
+#             reply_markup=InlineKeyboardMarkup().add(
+#                 InlineKeyboardButton(
+#                     "Load label of run",
+#                     callback_data=f"create {chat_id}",
+#                 )
+#             ),
+#         )
+#     await message.delete()
 
 
-# # create event part2 finish (inline button)
-@dp.callback_query_handler(lambda x: x.data and x.data.startswith("create "), state=None)
-async def callback_create_event(cq: CallbackQuery, state: FSMContext):
-    _, chat_id = cq.data.split()
-    async with state.proxy() as data:
-        data["chat_id"] = chat_id
-    await CreateEventFSM.photo.set()
+# # # create event part2 finish (inline button)
+# @dp.callback_query_handler(lambda x: x.data and x.data.startswith("create "), state=None)
+# async def callback_create_event(cq: CallbackQuery, state: FSMContext):
+#     _, chat_id = cq.data.split()
+#     async with state.proxy() as data:
+#         data["chat_id"] = chat_id
+#     await CreateEventFSM.photo.set()
     
 
 
-# add event part2
-@dp.message_handler(content_types=["photo"], state=CreateEventFSM.photo)
-async def load_photo(message: Message, state: FSMContext):
+# # add event part2
+# @dp.message_handler(content_types=["photo"], state=CreateEventFSM.photo)
+# async def load_photo(message: Message, state: FSMContext):
+#     async with state.proxy() as data:
+#         data["photo"] = message.photo[0].file_id
+#         # chat_id = message.chat.id
+#         # data["chat_id"] = chat_id
+#     await CreateEventFSM.next()
+#     await message.reply("enter event name")
+
+
+# create event part 1
+@dp.message_handler(commands='create_event')
+async def cmd_create(message: Message, state: FSMContext):
+    """
+    Conversation's entry point
+    """
+    # Set state
+    await CreateEventFSM.name_run.set()
+    # breakpoint()
+
+    state.storage.data[str(state.user)] = state.storage.data[str(state.chat)]
+    state.storage.data.pop(str(state.chat), None)
+    state.chat = state.user
     async with state.proxy() as data:
-        data["photo"] = message.photo[0].file_id
-        # chat_id = message.chat.id
-        # data["chat_id"] = chat_id
-    await CreateEventFSM.next()
-    await message.reply("enter event name")
+        data["chat_id"] = message.chat.id
+    await message.delete()
+    await bot.send_message(message.from_user.id, "Hi there! Enter Event name!")
 
 
 # add event part3
@@ -221,19 +236,46 @@ async def load_date(message: Message, state: FSMContext):
         if datetime.strptime(data["date_run"], '%Y-%m-%d') < now:
             await message.reply("Date must be greater than today")
             return
+    await CreateEventFSM.next()
+    await message.reply("Enter time of start")
+
+
+# add event part 4/1
+@dp.message_handler(state=CreateEventFSM.start_time)
+async def load_start_time(message: Message, state: FSMContext):
+    async with state.proxy() as data:
+        data["start_time"] = message.text
+        if not logic.validate_time(data["start_time"]):
+            await message.reply("Incorrect data format, should be HH:MM")
+            return
 
     await CreateEventFSM.next()
-    await message.reply("enter distance of event")
+    await message.reply("Enter distance in kilometers")
+    
+    
+
+
+
+# Check distance. Distance gotta be digit
+@dp.message_handler(lambda message: not message.text.isdigit(), state=CreateEventFSM.distance_run)
+async def process_distance_invalid(message: Message):
+    """
+    If distance is invalid
+    """
+    return await message.reply("Distance gotta be a number.\nEnter distance in kilometers (digits only)")
+
+
 
 
 # add event handler part 5
-@dp.message_handler(state=CreateEventFSM.distance_run)
+@dp.message_handler(lambda message: message.text.isdigit(), state=CreateEventFSM.distance_run)
 async def load_distance(message: Message, state: FSMContext):
     async with state.proxy() as data:
         data["distance_run"] = message.text
 
     await CreateEventFSM.next()
-    await message.reply("enter race duration")
+    await message.reply("enter Running pace")
+
 
 
 # add event handler part6 finish
@@ -245,6 +287,18 @@ async def load_time(message: Message, state: FSMContext):
 
     async with state.proxy() as data:
         await logic.add_event_command(state)
+        m = await bot.send_message(
+            data["chat_id"],
+            md.text(
+                md.text('Event name: ', md.bold(data["name_run"])),
+                md.text('Event date:', data["date_run"]),
+                md.text('Start time:', data["start_time"]),
+                md.text('Distance of run in km:', data["distance_run"]),
+                md.text('Running pace:', data["time_run"]),
+                sep='\n',
+            )
+        )
+        await m.pin()
     await message.reply("Event added")
     await state.finish()
 
