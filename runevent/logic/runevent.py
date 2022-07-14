@@ -1,12 +1,25 @@
 import sqlite3 as sq
+import aiopg
 from datetime import datetime
 from runevent.base.init import bot
 import time
 
+dsn = 'dbname=event user=event password=event host=127.0.0.1'
 
 # from base.init import bot
 db = None
 cur = None
+
+async def go():
+    async with aiopg.create_pool(dsn) as pool:
+        async with pool.acquire() as conn:
+            async with conn.cursor() as cur1:
+                await cur1.execute("SELECT 1")
+                ret = []
+                async for row in cur1:
+                    ret.append(row)
+                assert ret == [(1,)]
+
 
 
 # create ore connect to DB

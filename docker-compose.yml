@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: event
+      POSTGRES_USER: event  
+      POSTGRES_PASSWORD: event
+
+  # cache:
+  #   # image: redis
+  #   restart: always
+
+  runevent:
+    image: runevent
+    build:
+      context: .
+    depends_on:
+      - postgres
+    # volumes:
+    #   - $PWD/runevent/:/opt/app/runevent
+    #   - $PWD/application.py:/opt/app/application.py
+    env_file:
+      - .env
