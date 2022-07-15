@@ -1,14 +1,15 @@
 import sqlite3 as sq
 import aiopg
 from datetime import datetime
-from runevent.base.init import bot
+# from runevent.base.init import bot
 import time
 
-dsn = 'dbname=event user=event password=event host=127.0.0.1'
+dsn = "dbname=event user=event password=event host=127.0.0.1"
 
 # from base.init import bot
 db = None
 cur = None
+
 
 async def go():
     async with aiopg.create_pool(dsn) as pool:
@@ -21,7 +22,6 @@ async def go():
                 assert ret == [(1,)]
 
 
-
 # create ore connect to DB
 def sql_start():
     global db, cur
@@ -29,18 +29,22 @@ def sql_start():
     cur = db.cursor()
     if db:
         print("Data base conected")
-    db.execute("""
+    db.execute(
+        """
                CREATE TABLE IF NOT EXISTS events_list
                 (photo TEXT, name_run TEXT, date_run TEXT,
                 distance_run TEXT, time_run TEXT, name_creator
                 TEXT, event_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 chat_id INTEGER NOT NULL)
-               """)
-    db.execute("""
+               """
+    )
+    db.execute(
+        """
                CREATE TABLE IF NOT EXISTS peoples_list
                (id TEXT, name_runner TEXT NOT NULL,
                notes TEXT, FOREIGN KEY(id) REFERENCES events_list(event_id))
-               """)
+               """
+    )
 
     db.commit()
 
@@ -48,7 +52,7 @@ def sql_start():
 # validate input date
 def validate(date_text):
     try:
-        return bool(datetime.strptime(date_text, '%Y-%m-%d'))
+        return bool(datetime.strptime(date_text, "%Y-%m-%d"))
     except ValueError:
         return False
 
@@ -56,7 +60,7 @@ def validate(date_text):
 # validate input time
 def validate_time(time_text):
     try:
-        return bool(time.strptime(time_text, '%H:%M'))
+        return bool(time.strptime(time_text, "%H:%M"))
     except ValueError:
         return False
 
@@ -64,12 +68,15 @@ def validate_time(time_text):
 # add event to DB
 async def add_event_command(state):
     async with state.proxy() as data:
-        cur.execute("""
+        cur.execute(
+            """
             INSERT INTO events_list(
             chat_id, name_run, date_run, time_start, distance_run,
              time_run, name_creator)
              VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, tuple(data.values()))
+            """,
+            tuple(data.values()),
+        )
         db.commit()
 
 
@@ -120,8 +127,9 @@ async def list_runners(data):
 # tuple evets from db
 async def list_events2(chat_id):
     # breakpoint()
-    return cur.execute("SELECT * FROM events_list WHERE chat_id == ?",
-                       (chat_id, )).fetchall()
+    return cur.execute(
+        "SELECT * FROM events_list WHERE chat_id == ?", (chat_id,)
+    ).fetchall()
 
 
 # delete event in DB
