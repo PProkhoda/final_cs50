@@ -22,8 +22,7 @@ async def command_start(message: Message):
     """
     try:
         await bot.send_message(
-            message.from_user.id, "Welcome to RunEvent bot", reply_markup=keys
-        )
+            message.from_user.id, "Welcome to RunEvent bot")
         await message.delete()
     except Exception:
         await message.reply(
@@ -458,7 +457,7 @@ async def set_callback_add_runner(message: Message, state: FSMContext):
     name, date, creator, id, chat_id = 1, 2, 5, 6, 7
     for event in events:
         now = datetime.now()
-        if date >= now:
+        if event[date] >= now:
             await bot.send_message(
                 message.from_user.id,
                 text=(

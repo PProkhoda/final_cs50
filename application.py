@@ -1,8 +1,8 @@
 import asyncio
 from aiogram.utils import executor
 from runevent.base.init import dp
-from runevent.logic.runevent import sql_start, go
-from runevent.handlers import runevent as handlers
+from runevent.logic.runevent import sql_start
+from runevent.handlers import runevent as handlers  # noqa F401
 
 
 def main():
@@ -22,5 +22,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(go())
