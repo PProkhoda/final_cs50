@@ -6,24 +6,10 @@ from datetime import datetime
 import aiogram.utils.markdown as md
 from aiogram.types import ParseMode
 
-from runevent.base.init import bot, dp, storage
+from runevent.base.init import bot, dp
 from runevent.helpers.keyboard import keys
 from runevent.dto.runevent import CreateEventFSM, AddRunnerFSM
 from runevent.logic import runevent as logic
-
-
-# ID = None
-# chat_id = None
-
-
-# hiden moderator handler, moderator = telegram administrator
-# @dp.message_handler(commands="moderator", is_chat_admin=True)
-# async def make_changes_command(message: Message):
-#     # global ID
-#     # ID = message.from_user.id
-#     await bot.send_message(
-#         message.from_user.id, "What happend?", reply_markup=keysadmin)
-#     await message.delete()
 
 
 # start handler
@@ -39,7 +25,7 @@ async def command_start(message: Message):
             message.from_user.id, "Welcome to RunEvent bot", reply_markup=keys
         )
         await message.delete()
-    except:
+    except Exception:
         await message.reply(
             "Communication with the bot in "
             "the PM, write to him:\nhttps://t.me/RunEventCS50x2022_bot"
@@ -52,6 +38,7 @@ async def command_help(message: Message):
     help handler
     """
     try:
+        # send help msg
         await bot.send_message(
             message.from_user.id,
             """
@@ -63,8 +50,9 @@ async def command_help(message: Message):
             runner_list = ("/runners_list")\n
             """,
         )
+        # delete msg from chat
         await message.delete()
-    except:
+    except Exception:
         await message.reply(
             "Communication with the bot in "
             "the PM, write to him:\nhttps://t.me/RunEventCS50x2022_bot"
@@ -81,6 +69,7 @@ async def cancel_handler(message: Message, state: FSMContext):
         state (FSMContext): all state
     """
     current_state = await state.get_state()
+    # search "cancel" string - change state to "finish"
     if current_state is None:
         return
     await state.finish()
@@ -95,13 +84,12 @@ async def event_list_command(message: Message):
         message (Message): telegram message
     """
     chat_id = message.chat.id
-    # breakpoint()
     events = await logic.list_events2(chat_id)
-    name, date, distance, pace, creator, chat_id, time_start = 1, 2, 3, 4, 5, 7, 8
+    # assign names to tuple fields
+    name, date, distance, pace, creator, chat_id, time_start = (1, 2, 3, 4, 5, 7, 8)
     for event in events:
         if len(event) < 1:
-            await bot.send_message(message.from_user.id,
-                                   "list of runners is empty")
+            await bot.send_message(message.from_user.id, "list of runners is empty")
         else:
             await bot.send_message(
                 message.from_user.id,
@@ -114,6 +102,7 @@ async def event_list_command(message: Message):
                     f"Name of creator: {event[creator]}\n"
                 ),
             )
+    # delete msg from chat
     await message.delete()
 
 
@@ -125,13 +114,12 @@ async def def_callback_run1(message: Message):
         message (Message): telegram message
     """
     chat_id = message.chat.id
-    # breakpoint()
     events = await logic.list_events2(chat_id)
+    # assign names to tuple fields
     name, date, distance, pace, id, chat_id, time_start = 1, 2, 3, 4, 6, 7, 8
     for event in events:
         if len(event) < 1:
-            await bot.send_message(message.from_user.id,
-                                   "list of runners is empty")
+            await bot.send_message(message.from_user.id, "list of runners is empty")
         else:
             await bot.send_message(
                 message.from_user.id,
@@ -146,15 +134,17 @@ async def def_callback_run1(message: Message):
 
         await bot.send_message(
             message.from_user.id,
+            # text field is required
             text="***************",
             reply_markup=InlineKeyboardMarkup().add(
                 InlineKeyboardButton(
                     f"Show list of runners for Event name: {event[name]}",
                     callback_data=f"show {event[id]} {message.from_user.id}"
-                                  f"{event[name]}",
+                    f"{event[name]}",
                 )
             ),
         )
+    # delete msg from chat
     await message.delete()
 
 
@@ -165,6 +155,7 @@ async def callback_runner_list(cq: CallbackQuery):
     Args:
         cq (CallbackQuery): find Callback data
     """
+    # fetch event & user & event_name id
     _, event_id, user_id, event_name = cq.data.split()
     runners = await logic.list_runners(event_id)
     if len(runners) < 1:
@@ -176,9 +167,7 @@ async def callback_runner_list(cq: CallbackQuery):
             user_id,
             str(
                 "\n".join(
-                    [f"Name of runner: {r[0]}  "
-                     f" Note: {r[1]}" for r in runners
-                     ]
+                    [f"Name of runner: {r[0]}  " f" Note: {r[1]}" for r in runners]
                 )
             ),
         )
@@ -192,10 +181,11 @@ async def cmd_create(message: Message, state: FSMContext):
     """
     # Set state
     await CreateEventFSM.name_run.set()
-    # breakpoint()
-
+    # change storage from user to chat
     state.storage.data[str(state.user)] = state.storage.data[str(state.chat)]
+    # delete chat storage
     state.storage.data.pop(str(state.chat), None)
+    # chat = user
     state.chat = state.user
     async with state.proxy() as data:
         data["chat_id"] = message.chat.id
@@ -211,9 +201,10 @@ async def load_name(message: Message, state: FSMContext):
         message (Message): telegram message
         state (FSMContext): CreateeventFSM clas
     """
+    # write name run
     async with state.proxy() as data:
         data["name_run"] = message.text
-
+    # change state
     await CreateEventFSM.next()
     await message.reply("enter event date, format YYYY-MM-DD")
 
@@ -227,6 +218,7 @@ async def load_date(message: Message, state: FSMContext):
         state (FSMContext): CreateeventFSM class
     """
     async with state.proxy() as data:
+        # write to memorystorage date run
         data["date_run"] = message.text
         if not logic.validate(data["date_run"]):
             await message.reply("Incorrect data format, should be YYYY-MM-DD")
@@ -235,6 +227,7 @@ async def load_date(message: Message, state: FSMContext):
         if datetime.strptime(data["date_run"], "%Y-%m-%d") < now:
             await message.reply("Date must be greater than today")
             return
+    # change state FSM
     await CreateEventFSM.next()
     await message.reply("Enter time of start")
 
@@ -248,18 +241,20 @@ async def load_start_time(message: Message, state: FSMContext):
         state (FSMContext): CreateeventFSM class
     """
     async with state.proxy() as data:
+        # write to memorystorage start time
         data["start_time"] = message.text
+        # verify start time
         if not logic.validate_time(data["start_time"]):
             await message.reply("Incorrect data format, should be HH:MM")
             return
-
+    # change state FSM
     await CreateEventFSM.next()
     await message.reply("Enter distance in kilometers")
 
 
+# verify text is digit
 @dp.message_handler(
-    lambda message: not message.text.isdigit(),
-    state=CreateEventFSM.distance_run
+    lambda message: not message.text.isdigit(), state=CreateEventFSM.distance_run
 )
 async def process_distance_invalid(message: Message):
     """add event part 4/1 Check distance. Distance gotta be digit
@@ -271,11 +266,11 @@ async def process_distance_invalid(message: Message):
         message from bot: text
     """
     return await message.reply(
-        "Distance gotta be a number.\n"
-        "Enter distance in kilometers (digits only)"
+        "Distance gotta be a number.\n" "Enter distance in kilometers (digits only)"
     )
 
 
+# verify text is digit
 @dp.message_handler(
     lambda message: message.text.isdigit(), state=CreateEventFSM.distance_run
 )
@@ -287,8 +282,9 @@ async def load_distance(message: Message, state: FSMContext):
         state (FSMContext): CreateeventFSM class
     """
     async with state.proxy() as data:
+        # write to memorystorage distance run
         data["distance_run"] = message.text
-
+    # change state FSM
     await CreateEventFSM.next()
     await message.reply("enter Running pace")
 
@@ -302,7 +298,9 @@ async def load_time(message: Message, state: FSMContext):
         state (FSMContext): CreateEventFSM class
     """
     async with state.proxy() as data:
+        # write time run
         data["time_run"] = message.text
+        # write name creator
         data["name_creator"] = message.from_user.username
 
     async with state.proxy() as data:
@@ -320,6 +318,7 @@ async def load_time(message: Message, state: FSMContext):
         )
         await m.pin()
     await message.reply("Event added")
+    # change state to finish
     await state.finish()
 
 
@@ -333,7 +332,7 @@ async def delete_event_start(message: Message):
     """
     chat_id = message.chat.id
     events = await logic.list_events2(chat_id)
-
+    # assign names to tuple fields
     name, date, creator, id, chat_id = 1, 2, 5, 6, 7
     for event in events:
         await bot.send_message(
@@ -347,15 +346,17 @@ async def delete_event_start(message: Message):
 
         await bot.send_message(
             message.from_user.id,
+            # text required
             text="***************",
             reply_markup=InlineKeyboardMarkup().add(
                 InlineKeyboardButton(
                     f"Delete Event *{event[name]}*",
                     callback_data=f"del {event[id]} {message.from_user.id}"
-                                  f"{event[name]}",
+                    f"{event[name]}",
                 )
             ),
         )
+    # delete msg from chat
     await message.delete()
 
 
@@ -385,22 +386,25 @@ async def delete_runner(message: Message):
     for event in events:
         await bot.send_message(
             message.from_user.id,
-            text=(f"Event name:{event[name]}\n"
-                  f"Date of Event: {event[date]}\n"),
+            text=(
+                f"Event name:{event[name]}\n"
+                f"Date of Event: {event[date]}\n"),
         )
 
         await bot.send_message(
             message.from_user.id,
+            # text required
             text="!!!!!!!",
             reply_markup=InlineKeyboardMarkup().add(
                 InlineKeyboardButton(
                     md.text("Delete runners for Event ", md.bold(event[name])),
                     callback_data=f"delete {event[id]} {message.from_user.id}"
-                                  f"{message.from_user.username}",
+                    f"{message.from_user.username}",
                 )
             ),
             parse_mode=ParseMode.MARKDOWN,
         )
+    # del msg from chat
     await message.delete()
 
 
@@ -469,9 +473,9 @@ async def set_callback_add_runner(message: Message, state: FSMContext):
                 text="*************",
                 reply_markup=InlineKeyboardMarkup().add(
                     InlineKeyboardButton(
-                        f"Write notes and push for 
-                            Add runner where Event ID = {event[id]}",
-                        callback_data=f"add {event[id]} {message.from_user.id} {message.from_user.username} {notes}",
+                        f"Write notes to Event ID = {event[id]}",
+                        callback_data=f"add {event[id]} {message.from_user.id}"
+                        f" {message.from_user.username} {notes}",
                     )
                 ),
             )

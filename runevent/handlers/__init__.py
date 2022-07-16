@@ -1,1 +1,1 @@
-from runevent.handlers import runevent
+from runevent.handlers import runevent  # noqa F401

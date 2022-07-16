@@ -1,1 +1,1 @@
-from runevent.helpers import keyboard
+from runevent.helpers import keyboard  # noqa F401

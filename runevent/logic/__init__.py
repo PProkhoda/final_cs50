@@ -1,1 +1,1 @@
-from runevent.logic import runevent
+from runevent.logic import runevent  # noqa F401

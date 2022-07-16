@@ -1,25 +1,11 @@
 import sqlite3 as sq
-import aiopg
 from datetime import datetime
-# from runevent.base.init import bot
 import time
 
-dsn = "dbname=event user=event password=event host=127.0.0.1"
 
-# from base.init import bot
+# create db & cur
 db = None
 cur = None
-
-
-async def go():
-    async with aiopg.create_pool(dsn) as pool:
-        async with pool.acquire() as conn:
-            async with conn.cursor() as cur1:
-                await cur1.execute("SELECT 1")
-                ret = []
-                async for row in cur1:
-                    ret.append(row)
-                assert ret == [(1,)]
 
 
 # create ore connect to DB
@@ -29,6 +15,7 @@ def sql_start():
     cur = db.cursor()
     if db:
         print("Data base conected")
+    # execute
     db.execute(
         """
                CREATE TABLE IF NOT EXISTS events_list
@@ -38,6 +25,7 @@ def sql_start():
                 chat_id INTEGER NOT NULL)
                """
     )
+    # execute
     db.execute(
         """
                CREATE TABLE IF NOT EXISTS peoples_list
@@ -68,6 +56,7 @@ def validate_time(time_text):
 # add event to DB
 async def add_event_command(state):
     async with state.proxy() as data:
+        # execute
         cur.execute(
             """
             INSERT INTO events_list(
@@ -84,26 +73,6 @@ async def add_event_command(state):
 async def add_runner_command(state):
     cur.execute("INSERT INTO peoples_list VALUES(?, ?, ?)", tuple(state))
     db.commit()
-
-
-# view list of all events from DB
-# async def list_events(message):
-#     for x in cur.execute("SELECT * FROM events_list").fetchall():
-#         if len(x) < 1:
-#             await bot.send_message(message.from_user.id,
-#                                    "list of runners is empty")
-#         else:
-#             await bot.send_photo(
-#                 message.from_user.id,
-#                 x[0],
-#                 f"{x[1]}\n"
-#                 f"Date of Event: {x[2]}\n"
-#                 f"Distance of run: {x[3]}\n"
-#                 f"Time of run: {x[4]}\n"
-#                 f"Name of creator: {x[5]}\n"
-#                 f"Event ID: {x[6]}\n"
-#                 f"chat ID: {x[7]}",
-#             )
 
 
 # select list of runners from DB
@@ -140,15 +109,13 @@ async def sql_delete_command(data):
 
 # select all rows from peoples_list
 async def list_runners2(data):
-    cur.execute("SELECT * FROM peoples_list WHERE id == ?",
-                tuple(data.values()))
+    cur.execute("SELECT * FROM peoples_list WHERE id == ?", tuple(data.values()))
 
 
 # delete runner from DB via event_id
 async def del_runner_command(data):
     # async with state.proxy() as data:
     cur.execute(
-        "DELETE FROM peoples_list WHERE id == ? AND name_runner == ?",
-        tuple(data)
+        "DELETE FROM peoples_list WHERE id == ? AND name_runner == ?", tuple(data)
     )
     db.commit()
