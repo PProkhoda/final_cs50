@@ -12,7 +12,8 @@ delete_event = KeyboardButton("/delete_event")
 
 # add keys
 keys = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-keys.row(create_event).row(event_list, runner_list).row(add_runner, delete_runner)
+keys.row(create_event).row(event_list, 
+                           runner_list).row(add_runner, delete_runner)
 
 # add admin keys
 keysadmin = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
